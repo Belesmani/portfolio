@@ -1,57 +1,62 @@
-document.addEventListener('DOMContentLoaded', function () {
-    // Animação automática com IntersectionObserver
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          const progressBar = entry.target.querySelector('.language-progress-bar');
-          if (progressBar) {
-            progressBar.style.width = progressBar.style.getPropertyValue('--progress');
-          }
-        }
-      });
-    });
-
-    document.querySelectorAll('.language-item').forEach(item => {
-      const progressBar = item.querySelector('.language-progress-bar');
-
-      // Observa para animação automática
-      observer.observe(item);
-
-      // Reanima ao passar o mouse
-      item.addEventListener('mouseenter', () => {
-        if (progressBar) {
-          progressBar.style.transition = 'none'; // Remove transição temporariamente
-          progressBar.style.width = '0';
-
-          // Usa requestAnimationFrame para garantir que o reset ocorra antes da animação
-          requestAnimationFrame(() => {
-            requestAnimationFrame(() => {
-              progressBar.style.transition = 'width 2.0s ease'; // Restaura a transição
-              progressBar.style.width = progressBar.style.getPropertyValue('--progress');
-            });
-          });
-        }
-      });
-      
-    });
-    
-    
-  /**
-   * Init typed.js
-   */
-  const selectTyped = document.querySelector('.typed');
-  if (selectTyped) {
-    let typed_strings = selectTyped.getAttribute('data-typed-items');
-    typed_strings = typed_strings.split(',');
+document.addEventListener('DOMContentLoaded', function() {
+  // ========== Configuração do Typed.js ==========
+  const typedElement = document.querySelector('.typed');
+  if (typedElement) {
     new Typed('.typed', {
-      strings: typed_strings,
+      strings: typedElement.dataset.typedItems.split(','),
+      typeSpeed: 100,
+      backSpeed: 60,
       loop: true,
-      typeSpeed: 120,
-      backSpeed: 100,
-      backDelay: 2500
+      showCursor: true,
+      cursorChar: '|'
     });
   }
+
+  // ========== Animação das Barras de Progresso ==========
+  const animateBars = () => {
+    document.querySelectorAll('.language-progress-bar').forEach(bar => {
+      const targetWidth = bar.style.getPropertyValue('--progress');
+      bar.style.width = '0%'; // Reset inicial
+      
+      setTimeout(() => {
+        bar.style.transition = 'width 1.5s ease-out';
+        bar.style.width = targetWidth;
+      }, 500);
+    });
+  };
+
+  // Observador para animação ao scroll
+  const progressObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        animateBars();
+        progressObserver.unobserve(entry.target); // Para de observar após animar
+      }
+    });
   });
+
+  // Observa todos os containers de linguagem
+  document.querySelectorAll('.language-item').forEach(item => {
+    progressObserver.observe(item);
+  });
+
+  // Reanimação ao passar o mouse
+  document.querySelectorAll('.language-item').forEach(item => {
+    item.addEventListener('mouseenter', () => {
+      const bar = item.querySelector('.language-progress-bar');
+      if (bar) {
+        bar.style.transition = 'none';
+        bar.style.width = '0%';
+        
+        requestAnimationFrame(() => {
+          bar.style.transition = 'width 1.2s ease-out';
+          bar.style.width = bar.style.getPropertyValue('--progress');
+        });
+      }
+    });
+  });
+});
+  
 
   
 
